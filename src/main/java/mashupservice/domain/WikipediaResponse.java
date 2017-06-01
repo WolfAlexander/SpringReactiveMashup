@@ -15,7 +15,6 @@ import java.io.IOException;
 @Setter
 @NoArgsConstructor
 @JsonDeserialize(using = WikipediaResponseDeserializer.class)
-@ToString
 public class WikipediaResponse {
     private String artistDescription;
 

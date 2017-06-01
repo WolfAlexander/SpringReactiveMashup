@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono;
 
 /**
  * Client to the Wikipedia API
+ * Provides the artist description
  */
 @Service
 class WikipediaClient {
@@ -24,7 +25,7 @@ class WikipediaClient {
     /**
      * @param cacheManager - cache manager to to put and retrieve entities
      */
-    public WikipediaClient(CacheManager cacheManager) {
+    WikipediaClient(CacheManager cacheManager) {
         this.cacheManager = cacheManager;
         this.engWikipediaAPI = WebClient.create("https://en.wikipedia.org/w/");
     }
