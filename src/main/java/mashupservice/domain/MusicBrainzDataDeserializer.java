@@ -5,11 +5,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Deserialize the Json response from MusicBrains API to an MusicBrainzData object
@@ -31,28 +35,15 @@ public class MusicBrainzDataDeserializer extends JsonDeserializer<MusicBrainzDat
         return musicBrainzData;
     }
 
-    //TODO: Fix with stream
     private JsonNode getWikipediaNode(JsonNode rootNode){
-        JsonNode relations = rootNode.findPath("relations");
+        ArrayNode relations =  (ArrayNode)rootNode.findPath("relations");
 
-        /*return Stream.of(relations)
+        Stream<JsonNode> relationNodes = StreamSupport.stream(Spliterators.spliteratorUnknownSize(relations.elements(), Spliterator.ORDERED), false);
+
+        return relationNodes
                 .filter(node -> node.path("type").textValue().equals("wikipedia"))
-                .findFirst()
+                .findAny()
                 .orElseThrow(() -> new RuntimeException("No relation of type 'wikipedia' found in relations"));
-    */
-        JsonNode wikiNode = null;
-
-        for (JsonNode node : relations) {
-            String typeValue = node.path("type").textValue();
-            if(typeValue.equals("wikipedia")) {
-                wikiNode = node;
-                break;
-            }
-        }
-        if(wikiNode == null)
-            throw new RuntimeException("No relation of type 'wikipedia' found in relations");
-
-        return wikiNode;
     }
 
     private String getWikiArtistId(JsonNode wikipediaNode){
