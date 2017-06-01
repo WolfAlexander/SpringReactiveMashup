@@ -1,6 +1,6 @@
 package mashupservice.configuration;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import mashupservice.apiclient.ArtistMashup;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,5 +12,8 @@ import org.springframework.context.annotation.Profile;
 @Configuration
 @Profile("production")
 public class ProductionConfiguration {
-
+    @Bean
+    public ArtistMashup createArtistMacshp(CacheManager cacheManager){
+        return new ArtistMashup(cacheManager);
+    }
 }

@@ -1,4 +1,4 @@
-package mashupservice.domain;
+package mashupservice.apiclient.entity;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;

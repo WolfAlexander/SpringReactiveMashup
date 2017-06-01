@@ -1,12 +1,9 @@
-package mashupservice.domain;
+package mashupservice.apiclient.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
-
-import java.io.IOException;
 
 /**
  * Representation of the Wikipedia API response

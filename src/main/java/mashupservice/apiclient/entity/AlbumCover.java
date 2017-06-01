@@ -1,4 +1,4 @@
-package mashupservice.domain;
+package mashupservice.apiclient.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;

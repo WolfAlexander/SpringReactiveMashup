@@ -38,7 +38,7 @@ public class WikipediaClientTest {
     public void gettingExistingArtist(){
             StepVerifier
                 .create(wikipediaClient.getArtistDescriptionById(Mono.just("Nirvana_(band)")))
-                .consumeNextWith(Assert::assertNotNull)
+                .consumeNextWith(wikipediaResponse -> assertNotNull(wikipediaResponse.getArtistDescription()))
                 .expectComplete()
                 .verify();
     }

@@ -1,14 +1,12 @@
 package mashupservice.apiclient;
 
 import mashupservice.configuration.CacheConfiguration;
-import mashupservice.domain.AlbumCover;
+import mashupservice.apiclient.entity.AlbumCover;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -17,17 +15,13 @@ import reactor.core.publisher.Mono;
  * Provides album cover images for given album ids
  */
 @Service
-class CoverArtArchiveClient {
+public class CoverArtArchiveClient extends CachingRemoteClient{
     private static final Logger log = LoggerFactory.getLogger(WikipediaClient.class);
-    private final CacheManager cacheManager;
-    private final WebClient coverArtArchiveClient;
-
     /**
      * @param cacheManager - cache manager to to put and retrieve entities
      */
     CoverArtArchiveClient(CacheManager cacheManager) {
-        this.cacheManager = cacheManager;
-        this.coverArtArchiveClient = WebClient.create();
+        super(cacheManager, "");
     }
 
     /**
@@ -40,28 +34,25 @@ class CoverArtArchiveClient {
                  .flatMap(albumId -> getImage(Mono.just(albumId)));
     }
 
-    private Mono<AlbumCover> getImage(Mono<String> albumId){
+    Mono<AlbumCover> getImage(Mono<String> albumId){
+
         return albumId
-                .flatMap(id -> getImageFromCache(id).switchIfEmpty(getImageFromRemote(id)));
-    }
-
-    private Mono<AlbumCover> getImageFromCache(String albumId){
-        log.debug("Getting image from cache with album " + albumId);
-
-        Cache.ValueWrapper valueWrapper = cacheManager.getCache(CacheConfiguration.COVER_ART_CACHE).get(albumId);
-
-        if(valueWrapper == null)
-            return Mono.empty();
-        return Mono.just((AlbumCover)valueWrapper.get());
+                .flatMap(artistId -> {
+                    try{
+                        return Mono.just((AlbumCover) super.getObjectFromCache(CacheConfiguration.COVER_ART_CACHE, artistId));
+                    }catch (NullPointerException ex){
+                        return getImageFromRemote(artistId);
+                    }
+                });
     }
 
     /**
      * TODO: Change implementation
      */
     private Mono<AlbumCover> getImageFromRemote(String albumId){
-        log.debug("Getting image from remote with album " + albumId);
+        log.info("Getting image from remote with album " + albumId);
 
-        return coverArtArchiveClient
+        return remote
                 .get()
                 .uri("http://coverartarchive.org/release-group/"+albumId)
                 .accept(MediaType.TEXT_PLAIN)
@@ -69,26 +60,22 @@ class CoverArtArchiveClient {
                 .flatMap(clientResponse -> {
                     String redirectLocation0 = clientResponse.headers().asHttpHeaders().getFirst("Location");
                     if(redirectLocation0 != null)
-                        return coverArtArchiveClient.get()
+                        return remote.get()
                                 .uri(redirectLocation0)
                                 .accept(MediaType.TEXT_PLAIN)
                                 .exchange()
                                 .flatMap(clientResponse1 -> {
                                     String redirectLocation1 = clientResponse1.headers().asHttpHeaders().getFirst("Location");
 
-                                    return coverArtArchiveClient.get()
+                                    return remote.get()
                                             .uri(redirectLocation1)
                                             .accept(MediaType.APPLICATION_JSON)
                                             .retrieve()
                                             .bodyToMono(AlbumCover.class)
-                                            .doOnSuccess(albumCover -> putImageCoverIntoCache(albumId, albumCover));
+                                            .doOnSuccess(albumCover -> cacheObject(CacheConfiguration.COVER_ART_CACHE, albumId, albumCover));
                             });
                     else
                         return Mono.just(new AlbumCover());
                 });
-    }
-
-    private void putImageCoverIntoCache(String albumId, AlbumCover albumCover){
-        cacheManager.getCache(CacheConfiguration.COVER_ART_CACHE).put(albumId, albumCover);
     }
 }

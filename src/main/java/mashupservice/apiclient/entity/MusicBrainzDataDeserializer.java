@@ -1,4 +1,4 @@
-package mashupservice.domain;
+package mashupservice.apiclient.entity;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import mashupservice.domain.Album;
 
 import java.io.IOException;
 import java.util.List;
@@ -51,9 +52,11 @@ public class MusicBrainzDataDeserializer extends JsonDeserializer<MusicBrainzDat
     }
 
     private List<Album> getAlbumList(JsonNode rootNode){
-        JsonNode releaseGroups = rootNode.findPath("release-groups");
+        ArrayNode releaseGroups = (ArrayNode) rootNode.findPath("release-groups");
 
-        return Stream.of(releaseGroups)
+        Stream<JsonNode> relationNodes = StreamSupport.stream(Spliterators.spliteratorUnknownSize(releaseGroups.elements(), Spliterator.ORDERED), false);
+
+        return relationNodes
             .map(jsonNode -> {
                 String id = jsonNode.path("id").textValue();
                 String title = jsonNode.path("title").textValue();

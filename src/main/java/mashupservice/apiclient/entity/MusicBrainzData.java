@@ -1,7 +1,8 @@
-package mashupservice.domain;
+package mashupservice.apiclient.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.*;
+import mashupservice.domain.Album;
 
 import java.util.List;
 
