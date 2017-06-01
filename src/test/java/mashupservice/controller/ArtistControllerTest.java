@@ -31,7 +31,6 @@ public class ArtistControllerTest {
     @Autowired
     private ArtistController artistController;
 
-    @Ignore
     @Test
     public void getArtistWithProperMBID() throws Exception {
         StepVerifier.create(artistController.getArtist("5b11f4ce-a62d-471e-81fc-a69a8278c7da"))

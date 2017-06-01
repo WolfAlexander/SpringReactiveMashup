@@ -1,11 +1,15 @@
 package mashupservice.apiclient;
 
+import com.sun.org.apache.regexp.internal.RE;
+import mashupservice.apiclient.entity.AlbumCover;
 import mashupservice.apiclient.entity.MusicBrainzData;
 import mashupservice.apiclient.entity.WikipediaResponse;
 import mashupservice.domain.*;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
+import java.util.stream.Collectors;
 
 /**
  * TODO: FIRST TRY, change
@@ -15,6 +19,9 @@ public class ArtistMashup {
     private final WikipediaClient wikipediaClient;
     private final MusicBrainzClient musicBrainzClient;
     private final CoverArtArchiveClient coverArtArchiveClient;
+
+    private Mono<WikipediaResponse> wikipediaResponseMono;
+    private Mono<AlbumCover> coverArtArchiveMono;
 
     public ArtistMashup(CacheManager cacheManager) {
         this.wikipediaClient = new WikipediaClient(cacheManager);
@@ -30,19 +37,24 @@ public class ArtistMashup {
     public Mono<Artist> getArtistByMbid(String mbid){
         Mono<MusicBrainzData> musicBrainzDataMono = musicBrainzClient.collectArtistDataByMbid(Mono.just(mbid)).subscribe();
 
-        return musicBrainzDataMono.flatMap(musicBrainzData -> {
-            Artist artist = new Artist();
+        return Mono.just(new Artist())
+            .flatMap(artist -> {
+                artist.setMbid(mbid);
 
-            artist.setMbid(mbid);
-            initArtistWikiDescription(musicBrainzData, artist);
-            initAlbumCovers(musicBrainzData, artist);
+                return musicBrainzDataMono
+                        .flatMap(musicBrainzData -> {
+                            initArtistWikiDescription(musicBrainzData, artist);
+                            initAlbumCovers(musicBrainzData, artist);
 
-            return Mono.just(artist);
-        });
+                            return Mono.just(artist).delayUntilOther(wikipediaResponseMono).delayUntilOther(coverArtArchiveMono).doOnSuccess(Mono::just);
+                        });
+            });
     }
 
     private void initArtistWikiDescription(MusicBrainzData musicBrainzData, Artist artist){
-        getWikipediaData(musicBrainzData).subscribe(wikiValue ->{
+        wikipediaResponseMono = getWikipediaData(musicBrainzData);
+
+        wikipediaResponseMono.subscribe(wikiValue ->{
             artist.setDescription(wikiValue.getArtistDescription());
         });
     }
@@ -52,11 +64,13 @@ public class ArtistMashup {
     }
 
     private void initAlbumCovers(MusicBrainzData musicBrainzData, Artist artist){
-        musicBrainzData.getAlbums().forEach(album -> {
-            coverArtArchiveClient.getImage(Mono.just(album.getId())).subscribe(albumCover -> {
-                album.setCoverImage(albumCover.getCoverImageSrc());
+            musicBrainzData.getAlbums().forEach(album -> {
+                coverArtArchiveMono = coverArtArchiveClient.getImage(Mono.just(album.getId()));
+
+                coverArtArchiveMono.subscribe(albumCover -> {
+                    album.setCoverImage(albumCover.getCoverImageSrc());
+                });
             });
-        });
 
         artist.setAlbums(musicBrainzData.getAlbums());
     }
