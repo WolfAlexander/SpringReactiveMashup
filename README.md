@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/WolfAlexander/SpringReactiveMashup.svg?branch=master)](https://travis-ci.org/WolfAlexander/SpringReactiveMashup)
+
 ## Mashup service
 This REST API is a mashup of MusicBrainz, Wikipedia and Cover Art Archive API:s to provide detailed
 information about music artists.
