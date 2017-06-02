@@ -20,7 +20,7 @@ public class MusicBrainzClient extends CachingRemoteClient{
     /**
      * @param cacheManager - cache manager to to put and retrieve entities
      */
-    MusicBrainzClient(CacheManager cacheManager) {
+    public MusicBrainzClient(CacheManager cacheManager) {
         super(cacheManager, "http://musicbrainz.org/ws/2/");
     }
 

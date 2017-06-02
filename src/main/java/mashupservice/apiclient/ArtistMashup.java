@@ -1,18 +1,14 @@
 package mashupservice.apiclient;
 
-import com.sun.org.apache.regexp.internal.RE;
 import mashupservice.apiclient.entity.AlbumCover;
 import mashupservice.apiclient.entity.MusicBrainzData;
 import mashupservice.apiclient.entity.WikipediaResponse;
 import mashupservice.domain.*;
-import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.stream.Collectors;
-
 /**
- * TODO: FIRST TRY, change
+ * This class perform the mashup using external services and providing artist information
  */
 @Service
 public class ArtistMashup {
@@ -23,10 +19,15 @@ public class ArtistMashup {
     private Mono<WikipediaResponse> wikipediaResponseMono;
     private Mono<AlbumCover> coverArtArchiveMono;
 
-    public ArtistMashup(CacheManager cacheManager) {
-        this.wikipediaClient = new WikipediaClient(cacheManager);
-        this.musicBrainzClient = new MusicBrainzClient(cacheManager);
-        this.coverArtArchiveClient = new CoverArtArchiveClient(cacheManager);
+    /**
+     * @param wikipediaClient - client to wikipedia api
+     * @param musicBrainzClient -  client to the musicbrains api
+     * @param coverArtArchiveClient - client to the coverartarchive api
+     */
+    public ArtistMashup(WikipediaClient wikipediaClient, MusicBrainzClient musicBrainzClient, CoverArtArchiveClient coverArtArchiveClient) {
+        this.wikipediaClient = wikipediaClient;
+        this.musicBrainzClient = musicBrainzClient;
+        this.coverArtArchiveClient = coverArtArchiveClient;
     }
 
     /**
@@ -35,13 +36,13 @@ public class ArtistMashup {
      * @return  MBID, the Wikipedia description of the artist and list of all the albums created by the artist
      */
     public Mono<Artist> getArtistByMbid(String mbid){
-        Mono<MusicBrainzData> musicBrainzDataMono = musicBrainzClient.collectArtistDataByMbid(Mono.just(mbid)).subscribe();
+
 
         return Mono.just(new Artist())
             .flatMap(artist -> {
                 artist.setMbid(mbid);
 
-                return musicBrainzDataMono
+                return musicBrainzClient.collectArtistDataByMbid(Mono.just(mbid)).subscribe()
                         .flatMap(musicBrainzData -> {
                             initArtistWikiDescription(musicBrainzData, artist);
                             initAlbumCovers(musicBrainzData, artist);

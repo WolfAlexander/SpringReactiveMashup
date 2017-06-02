@@ -20,7 +20,7 @@ public class CoverArtArchiveClient extends CachingRemoteClient{
     /**
      * @param cacheManager - cache manager to to put and retrieve entities
      */
-    CoverArtArchiveClient(CacheManager cacheManager) {
+    public CoverArtArchiveClient(CacheManager cacheManager) {
         super(cacheManager, "");
     }
 
@@ -47,7 +47,7 @@ public class CoverArtArchiveClient extends CachingRemoteClient{
     }
 
     /**
-     * TODO: Change implementation
+     * TODO: Change implementation for redirection
      */
     private Mono<AlbumCover> getImageFromRemote(String albumId){
         log.info("Getting image from remote with album " + albumId);

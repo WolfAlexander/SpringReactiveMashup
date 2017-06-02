@@ -6,12 +6,14 @@ import mashupservice.domain.Album;
 
 import java.util.List;
 
+/**
+ * Representation of the information collected from MusicBrainz API
+ */
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonDeserialize(using = MusicBrainzDataDeserializer.class)
-@ToString
 public class MusicBrainzData {
     private String wikiArtistId;
     private List<Album> albums;

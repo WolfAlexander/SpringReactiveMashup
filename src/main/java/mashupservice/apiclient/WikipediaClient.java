@@ -20,7 +20,7 @@ public class WikipediaClient extends CachingRemoteClient{
     /**
      * @param cacheManager - cache manager to to put and retrieve entities
      */
-    WikipediaClient(CacheManager cacheManager) {
+    public WikipediaClient(CacheManager cacheManager) {
         super(cacheManager, "https://en.wikipedia.org/w/");
     }
 

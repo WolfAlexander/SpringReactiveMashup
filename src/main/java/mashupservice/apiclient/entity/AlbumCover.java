@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Representation of an album cover from cover art achive
+ */
 @Getter
 @Setter
 @NoArgsConstructor
