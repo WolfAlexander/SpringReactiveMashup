@@ -1,7 +1,7 @@
 package mashupservice.apiclient;
 
 import mashupservice.MashupServiceApplication;
-import org.junit.Assert;
+import mashupservice.apiclient.entity.WikipediaData;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +38,10 @@ public class WikipediaClientTest {
     public void gettingExistingArtist(){
             StepVerifier
                 .create(wikipediaClient.getArtistDescriptionById(Mono.just("Nirvana_(band)")))
-                .consumeNextWith(wikipediaResponse -> assertNotNull(wikipediaResponse.getArtistDescription()))
+                .consumeNextWith(wikipediaResponse -> {
+                    assertTrue(wikipediaResponse instanceof WikipediaData);
+                    assertNotNull(((WikipediaData)wikipediaResponse).getArtistDescription());
+                })
                 .expectComplete()
                 .verify();
     }
@@ -47,7 +50,7 @@ public class WikipediaClientTest {
     public void gettingNonExisting(){
         StepVerifier
             .create(wikipediaClient.getArtistDescriptionById(Mono.just("dijfisdf")))
-            .expectError()
+            .expectError(ExternalApiError.class)
             .verify();
     }
 

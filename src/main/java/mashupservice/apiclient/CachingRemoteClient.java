@@ -6,7 +6,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
- * A remote service client with caching capabilities
+ * A client with caching capabilities used to access remote services
  */
 class CachingRemoteClient {
     private static final Logger log = LoggerFactory.getLogger(CachingRemoteClient.class);
@@ -29,7 +29,7 @@ class CachingRemoteClient {
      * @param value - the value to be cached
      */
     void cacheObject(String cacheName, Object key, Object value){
-        log.info("Caching " + value + " with key '" + key + "' in cache with name '" + cacheName + "'");
+        log.debug("Caching " + value + " with key '" + key + "' in cache with name '" + cacheName + "'");
 
         this.cacheManager.getCache(cacheName).put(key, value);
     }
@@ -42,7 +42,7 @@ class CachingRemoteClient {
      * @throws NullPointerException if value for a give key does not exist
      */
     Object getObjectFromCache(String cacheName, Object key){
-        log.info("Getting value with key '" + key + "' from cache '" + cacheName + "'");
+        log.debug("Getting value with key '" + key + "' from cache '" + cacheName + "'");
 
         return this.cacheManager.getCache(cacheName).get(key).get();
     }

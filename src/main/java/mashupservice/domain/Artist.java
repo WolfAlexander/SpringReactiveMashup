@@ -6,6 +6,9 @@ import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * Represents an artist
+ */
 @Getter
 @NoArgsConstructor
 @Setter

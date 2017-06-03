@@ -1,5 +1,6 @@
 package mashupservice.controller;
 
+import mashupservice.apiclient.ExternalApiError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -25,17 +26,14 @@ public class ControllerErrorHandler {
     public ResponseEntity<RestServiceError> handleExceptions(Exception ex){
         log.error("Exception caught: " + ex);
 
-        if (ex instanceof WebClientException && ex.getMessage().contains("404"))
+       if(ex instanceof HttpClientException && ((HttpClientException) ex).status().code() == HttpStatus.SERVICE_UNAVAILABLE.value())
             return new ResponseEntity<RestServiceError>(
-                    new RestServiceError("Artist have not been found"),
-                    HttpStatus.NOT_FOUND);
-        else if(ex instanceof HttpClientException && ((HttpClientException) ex).status().code() == HttpStatus.SERVICE_UNAVAILABLE.value())
+                    new RestServiceError("One of external services is unavailable"), HttpStatus.SERVICE_UNAVAILABLE);
+        else if(ex instanceof ExternalApiError)
             return new ResponseEntity<RestServiceError>(
-                    new RestServiceError("One of external services is unavailable"),
-                    HttpStatus.SERVICE_UNAVAILABLE);
+                    new RestServiceError(((ExternalApiError) ex).getErrorMessage()), ((ExternalApiError) ex).getResponseStatus());
         else
             return new ResponseEntity<RestServiceError>(
-                    new RestServiceError("An unknown error happen during the request"),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+                    new RestServiceError("An unknown error happen during the request"), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

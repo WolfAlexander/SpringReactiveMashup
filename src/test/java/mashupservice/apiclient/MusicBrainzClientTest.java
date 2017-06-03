@@ -1,6 +1,7 @@
 package mashupservice.apiclient;
 
 import mashupservice.MashupServiceApplication;
+import mashupservice.apiclient.entity.MusicBrainzData;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -41,10 +42,10 @@ public class MusicBrainzClientTest {
     public void gettingDataWithExistingMbid() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         StepVerifier
             .create(musicBrainzClient.collectArtistDataByMbid(Mono.just("5b11f4ce-a62d-471e-81fc-a69a8278c7da")))
-            .consumeNextWith(musicBrainzData -> {
-                assertNotNull(musicBrainzData);
-                assertEquals("Nirvana_(band)", musicBrainzData.getWikiArtistId());
-                assertNotNull(musicBrainzData.getAlbums());
+            .consumeNextWith(externalApiResponse -> {
+                assertTrue(externalApiResponse instanceof MusicBrainzData);
+                assertEquals("Nirvana_(band)", ((MusicBrainzData)externalApiResponse).getWikiArtistId());
+                assertNotNull(((MusicBrainzData) externalApiResponse).getAlbums());
             })
             .expectComplete()
             .verify();
@@ -55,7 +56,7 @@ public class MusicBrainzClientTest {
     public void gettingDataWithNonExistingMbid(){
         StepVerifier
                 .create(musicBrainzClient.collectArtistDataByMbid(Mono.just("fdsuhfdsif")))
-                .expectError()
+                .expectError(ExternalApiError.class)
                 .verify();
     }
 }

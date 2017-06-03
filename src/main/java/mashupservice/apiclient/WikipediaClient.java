@@ -1,13 +1,18 @@
 package mashupservice.apiclient;
 
+import mashupservice.apiclient.entity.ExternalApiResponse;
+import mashupservice.apiclient.entity.WikipediaData;
 import mashupservice.configuration.CacheConfiguration;
-import mashupservice.apiclient.entity.WikipediaResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import reactor.core.publisher.Mono;
+
+import java.time.Duration;
 
 /**
  * Client to the Wikipedia API
@@ -29,28 +34,38 @@ public class WikipediaClient extends CachingRemoteClient{
      * @param wikiArtistId - wikipedia identifier to identify the artist entity
      * @return a description of the artist
      */
-    Mono<WikipediaResponse> getArtistDescriptionById(Mono<String> wikiArtistId){
-        log.info("Getting artist description with id: " + wikiArtistId);
+    Mono<ExternalApiResponse> getArtistDescriptionById(Mono<String> wikiArtistId){
+        log.debug("Getting artist description with id: " + wikiArtistId);
 
         return wikiArtistId
             .flatMap(artistId -> {
                 try{
-                    return Mono.just((WikipediaResponse) super.getObjectFromCache(CacheConfiguration.WIKIPEDIA_CACHE, artistId));
+                    return Mono.just((WikipediaData) super.getObjectFromCache(CacheConfiguration.WIKIPEDIA_CACHE, artistId));
                 }catch (NullPointerException ex){
                     return getDescriptionFromRemote(artistId);
                 }
             });
     }
 
-    private Mono<WikipediaResponse> getDescriptionFromRemote(String wikiArtistId) {
-        log.info("Getting artist description from remote with id: " + wikiArtistId);
+    private Mono<WikipediaData> getDescriptionFromRemote(String wikiArtistId) {
+        log.debug("Getting artist description from remote with id: " + wikiArtistId);
 
          return remote
                 .get()
                 .uri("/api.php?action=query&format=json&prop=extracts&exintro=true&redirects=true&titles="+wikiArtistId)
                 .accept(MediaType.APPLICATION_JSON_UTF8)
-                .retrieve()
-                .bodyToMono(WikipediaResponse.class)
+                .exchange()
+                .timeout(Duration.ofSeconds(2))
+                .flatMap(this::deserializeResponse)
                 .doOnSuccess(wikipediaResponse -> cacheObject(CacheConfiguration.WIKIPEDIA_CACHE, wikiArtistId, wikipediaResponse));
+    }
+
+    private Mono<WikipediaData> deserializeResponse(ClientResponse clientResponse){
+        HttpStatus responseStatus = clientResponse.statusCode();
+
+        return clientResponse.bodyToMono(WikipediaData.class)
+                .doOnError(throwable -> {
+                   throw new ExternalApiError(responseStatus, throwable.getMessage());
+                });
     }
 }

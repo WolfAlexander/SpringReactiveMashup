@@ -4,14 +4,18 @@
 This REST API is a mashup of MusicBrainz, Wikipedia and Cover Art Archive API:s to provide detailed
 information about music artists.
 
- ### Functional View
+### Functional View
  The consumer of this API provides a MBID (MusicBrainz Identifier) and gets back 
  the Wikipedia description of the artist and list of all the albums created by the 
  artist, available at MusicBrainz. The album description includes the identification
  number, title and cover image.
  
- ### Design
- //TODO: Add class diagram
+### Design
+This is a mashup service that requests several remote API:s for information. The external API:s 
+can be slow and application also has to be able to handle big loads. Those are the reasons to that
+this service is built using reactive streams. Reactive streams are asynchronous and has non-blocking back pressure.
+
+Cache is used to reduce response time and handle the problem of MusicBrainz API returning 503 every few requests.
  
  ### Tools
  * Spring Boot 2.0 M1
@@ -21,12 +25,18 @@ information about music artists.
  * Mockito
  * Docker
  
- ### Installation and running
- ##### Maven JAR
+ ### Build and run
+ ##### Spring JAR
  1. Clone the project
  2. Go to the root directory of the project
  3. Run in terminal: <code>mvn spring-boot:run</code>
  
  ##### Docker
+ 1. Define <code>DOCKER_HOST</code> and <code>DOCKER_CERT_PATH</code> in <code>build-with-docker.sh</code> script
+ 2. Run the <code>build-with-docker.sh</code> script
+ 3. Run the <code>run-with-docker.sh</code> script
  
- ### Problems
+ ### Known issues
+ ##### Cover Art Archive redirect
+ Cover Art Archive API redirects request two times. Currently, with reactive WebClient in Spring Framework 5 RC1, it
+ looks like redirect has to be handled manually. Manual representation should be rewritten.

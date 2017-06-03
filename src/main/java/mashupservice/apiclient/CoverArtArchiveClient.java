@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+
 /**
  * Client for Cover Art Archive API
  * Provides album cover images for given album ids
@@ -50,13 +52,14 @@ public class CoverArtArchiveClient extends CachingRemoteClient{
      * TODO: Change implementation for redirection
      */
     private Mono<AlbumCover> getImageFromRemote(String albumId){
-        log.info("Getting image from remote with album " + albumId);
+        log.debug("Getting image from remote with album " + albumId);
 
         return remote
                 .get()
                 .uri("http://coverartarchive.org/release-group/"+albumId)
                 .accept(MediaType.TEXT_PLAIN)
                 .exchange()
+                .timeout(Duration.ofSeconds(2))
                 .flatMap(clientResponse -> {
                     String redirectLocation0 = clientResponse.headers().asHttpHeaders().getFirst("Location");
                     if(redirectLocation0 != null)
@@ -64,6 +67,7 @@ public class CoverArtArchiveClient extends CachingRemoteClient{
                                 .uri(redirectLocation0)
                                 .accept(MediaType.TEXT_PLAIN)
                                 .exchange()
+                                .timeout(Duration.ofSeconds(2))
                                 .flatMap(clientResponse1 -> {
                                     String redirectLocation1 = clientResponse1.headers().asHttpHeaders().getFirst("Location");
 

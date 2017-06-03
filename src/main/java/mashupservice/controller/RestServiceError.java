@@ -4,10 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * A representation of as error returns to the consumer
+ * A representation of as error returned to the consumer
  */
 @Getter
 @AllArgsConstructor
-public class RestServiceError {
+class RestServiceError {
     private String message;
 }

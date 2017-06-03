@@ -4,6 +4,7 @@ import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import mashupservice.apiclient.ExternalApiError;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ public class ControllerErrorHandlerTest {
 
     @Test
     public void artistNotFoundHandling() throws Exception {
-        ResponseEntity<RestServiceError> response = errorHandler.handleExceptions(new WebClientException("404"));
+        ResponseEntity<RestServiceError> response = errorHandler.handleExceptions(new ExternalApiError(HttpStatus.NOT_FOUND, "404 Not Found"));
         assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }

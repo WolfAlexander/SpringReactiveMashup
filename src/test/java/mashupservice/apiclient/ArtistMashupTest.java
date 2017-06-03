@@ -3,7 +3,7 @@ package mashupservice.apiclient;
 import mashupservice.MashupServiceApplication;
 import mashupservice.apiclient.entity.AlbumCover;
 import mashupservice.apiclient.entity.MusicBrainzData;
-import mashupservice.apiclient.entity.WikipediaResponse;
+import mashupservice.apiclient.entity.WikipediaData;
 import mashupservice.domain.Album;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -96,7 +97,7 @@ public class ArtistMashupTest {
     }
 
     private void mockProperWikiResponse(){
-        WikipediaResponse wikipediaResponse = new WikipediaResponse();
+        WikipediaData wikipediaResponse = new WikipediaData();
         wikipediaResponse.setArtistDescription("This is artist description");
 
         Mockito.when(wikipediaClient.getArtistDescriptionById(any()))
@@ -114,12 +115,12 @@ public class ArtistMashupTest {
         mockMusicBrainzClientWithError();
 
         StepVerifier.create(mashup.getArtistByMbid("test"))
-                .expectError(WebClientException.class)
+                .expectError(ExternalApiError.class)
                 .verify();
     }
 
     private void mockMusicBrainzClientWithError(){
         Mockito.when(musicBrainzClient.collectArtistDataByMbid(any()))
-                .thenThrow(new WebClientException("503 Service Not Available"));
+                .thenThrow(new ExternalApiError(HttpStatus.SERVICE_UNAVAILABLE, "503 Service Not Available"));
     }
 }
