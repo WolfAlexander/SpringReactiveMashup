@@ -1,2 +1,5 @@
 server:
   port: ${port:8000}
+spring:
+  profiles:
+    active: production
