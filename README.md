@@ -10,14 +10,23 @@ information about music artists.
  artist, available at MusicBrainz. The album description includes the identification
  number, title and cover image.
  
-### Design
-This is a mashup service that requests several remote API:s for information. The external API:s 
-can be slow and application also has to be able to handle big loads. Those are the reasons to that
+### Design choices
+#####General
+This a single service layered application.
+![Conceptual model](/docs/SpringReaciveMashup.png)
+*Conceptual model showing major components*
+
+##### Reactive streams
+A mashup service is requesting several remote API:s for information. The external API:s 
+can be slow, they have consumption restrictions and application also has to be able to handle big loads. Those are the reasons to that
 this service is built using reactive streams. Reactive streams are asynchronous and has non-blocking back pressure.
 
+##### Cache
 Cache is used to reduce response time and handle the problem of MusicBrainz API returning 503 every few requests.
  
- ### Tools
+###Implementation
+
+ ##### Tools
  * Spring Boot 2.0 M1
  * Spring Framework 5 RC1
  * Reactor 3.0.7

@@ -6,7 +6,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
- * A client with caching capabilities used to access remote services
+ * A caching client to a remote services
  */
 class CachingRemoteClient {
     private static final Logger log = LoggerFactory.getLogger(CachingRemoteClient.class);
@@ -24,7 +24,7 @@ class CachingRemoteClient {
 
     /**
      * Putting a value into a specific cache
-     * @param cacheName - name to identify the cache in which value should be cached
+     * @param cacheName - name to identify the cache in which value should be put
      * @param key - key to the value to later get the value
      * @param value - the value to be cached
      */

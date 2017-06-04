@@ -18,7 +18,7 @@ public class ControllerErrorHandler {
     private static final Logger log = LoggerFactory.getLogger(ArtistController.class);
 
     /**
-     * Handles error of the application
+     * Handles errors thrown during execution and transforms to response entities
      * @param ex - exception during execution of a request
      * @return a response to the consumer of the service with error information
      */
