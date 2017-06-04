@@ -75,6 +75,7 @@ Cache is used to reduce response time and handle the problem of MusicBrainz API 
  * JUnit 4
  * Mockito
  * Docker
+ * Maven
  
  ### Build and run
  ##### Spring JAR
