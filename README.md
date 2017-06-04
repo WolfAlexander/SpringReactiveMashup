@@ -33,11 +33,17 @@ information about music artists.
            "id": "178b993e-fa9c-36d3-9d73-c5a8ba0c748d",
            "title": "Wipeout",
            "coverImage": "http://coverartarchive.org/release/00681632-b53b-4aae-89c2-470150f33fe3/1898023189.jpg"
-         }...
+         }
+      //more albums
        ]
      }
     ```
- 
+ ##### Error responses
+ * HTTP 503 "One of external services is unavailable. Try again a few seconds later." - an external service is not available. Since currently
+ MusicBrainz API is returning 503 every few seconds, it most likely is the problem. Try to call the API again.
+ * HTTP 404 "Not found" - artist with given MBID has not been found.
+ * HTTP 400 "Invalid mbid." - invalid MBID is entered. Check if the MBID entered has proper format: [a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}
+ * HTTP 500 "An unknown error happen during the request" - some kind of unknown error happen that not supposed to happen.
  
 ### Design choices
 ##### General

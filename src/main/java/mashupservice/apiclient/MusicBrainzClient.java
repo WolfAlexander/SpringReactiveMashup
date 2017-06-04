@@ -40,7 +40,7 @@ public class MusicBrainzClient extends CachingRemoteClient {
         return mbid
                 .flatMap(id -> {
                     try {
-                        return Mono.just((MusicBrainzData) getObjectFromCache(CacheConfiguration.MUSIC_BRAINZ_CACHE, id));
+                        return Mono.just((MusicBrainzData) getObjectFromCache(CacheConfiguration.MUSIC_BRAINZ_CACHE, id.toLowerCase()));
                     } catch (NullPointerException ex) {
                         return getArtistDataFromRemote(id);
                     }
@@ -56,7 +56,7 @@ public class MusicBrainzClient extends CachingRemoteClient {
                 .exchange()
                 .timeout(Duration.ofSeconds(2))
                 .flatMap(this::deserializeResponse)
-                .doOnSuccess(musicBrainzData -> cacheObject(CacheConfiguration.MUSIC_BRAINZ_CACHE, mbid, musicBrainzData));
+                .doOnSuccess(musicBrainzData -> cacheObject(CacheConfiguration.MUSIC_BRAINZ_CACHE, mbid.toLowerCase(), musicBrainzData));
     }
 
     private Mono<ExternalApiResponse> deserializeResponse(ClientResponse clientResponse) {

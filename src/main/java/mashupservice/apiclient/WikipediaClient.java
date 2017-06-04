@@ -40,7 +40,7 @@ public class WikipediaClient extends CachingRemoteClient{
         return wikiArtistId
             .flatMap(artistId -> {
                 try{
-                    return Mono.just((WikipediaData) super.getObjectFromCache(CacheConfiguration.WIKIPEDIA_CACHE, artistId));
+                    return Mono.just((WikipediaData) super.getObjectFromCache(CacheConfiguration.WIKIPEDIA_CACHE, artistId.toLowerCase()));
                 }catch (NullPointerException ex){
                     return getDescriptionFromRemote(artistId);
                 }
@@ -57,7 +57,7 @@ public class WikipediaClient extends CachingRemoteClient{
                 .exchange()
                 .timeout(Duration.ofSeconds(2))
                 .flatMap(this::deserializeResponse)
-                .doOnSuccess(wikipediaResponse -> cacheObject(CacheConfiguration.WIKIPEDIA_CACHE, wikiArtistId, wikipediaResponse));
+                .doOnSuccess(wikipediaResponse -> cacheObject(CacheConfiguration.WIKIPEDIA_CACHE, wikiArtistId.toLowerCase(), wikipediaResponse));
     }
 
     private Mono<WikipediaData> deserializeResponse(ClientResponse clientResponse){

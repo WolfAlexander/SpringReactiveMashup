@@ -41,7 +41,7 @@ public class CoverArtArchiveClient extends CachingRemoteClient{
         return albumId
                 .flatMap(artistId -> {
                     try{
-                        return Mono.just((AlbumCover) super.getObjectFromCache(CacheConfiguration.COVER_ART_CACHE, artistId));
+                        return Mono.just((AlbumCover) super.getObjectFromCache(CacheConfiguration.COVER_ART_CACHE, artistId.toLowerCase()));
                     }catch (NullPointerException ex){
                         return getImageFromRemote(artistId);
                     }
@@ -76,7 +76,7 @@ public class CoverArtArchiveClient extends CachingRemoteClient{
                                             .accept(MediaType.APPLICATION_JSON)
                                             .retrieve()
                                             .bodyToMono(AlbumCover.class)
-                                            .doOnSuccess(albumCover -> cacheObject(CacheConfiguration.COVER_ART_CACHE, albumId, albumCover));
+                                            .doOnSuccess(albumCover -> cacheObject(CacheConfiguration.COVER_ART_CACHE, albumId.toLowerCase(), albumCover));
                             });
                     else
                         return Mono.just(new AlbumCover());

@@ -28,7 +28,7 @@ public class ControllerErrorHandler {
 
        if(ex instanceof HttpClientException && ((HttpClientException) ex).status().code() == HttpStatus.SERVICE_UNAVAILABLE.value())
             return new ResponseEntity<RestServiceError>(
-                    new RestServiceError("One of external services is unavailable"), HttpStatus.SERVICE_UNAVAILABLE);
+                    new RestServiceError("One of external services is unavailable. Try again a few seconds later."), HttpStatus.SERVICE_UNAVAILABLE);
         else if(ex instanceof ExternalApiError)
             return new ResponseEntity<RestServiceError>(
                     new RestServiceError(((ExternalApiError) ex).getErrorMessage()), ((ExternalApiError) ex).getResponseStatus());
