@@ -3,6 +3,7 @@ package mashupservice.apiclient;
 import mashupservice.apiclient.entity.ExternalApiResponse;
 import mashupservice.apiclient.entity.WikipediaData;
 import mashupservice.configuration.CacheConfiguration;
+import mashupservice.exception.ValueInCacheNotFound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
@@ -40,8 +41,9 @@ public class WikipediaClient extends CachingRemoteClient{
         return wikiArtistId
             .flatMap(artistId -> {
                 try{
-                    return Mono.just((WikipediaData) super.getObjectFromCache(CacheConfiguration.WIKIPEDIA_CACHE, artistId.toLowerCase()));
-                }catch (NullPointerException ex){
+                    return Mono.just((WikipediaData) super.getObjectFromCache(artistId.toLowerCase()));
+                }catch (ValueInCacheNotFound ex){
+                    log.warn(ex.getMessage());
                     return getDescriptionFromRemote(artistId);
                 }
             });
@@ -57,7 +59,7 @@ public class WikipediaClient extends CachingRemoteClient{
                 .exchange()
                 .timeout(Duration.ofSeconds(2))
                 .flatMap(this::deserializeResponse)
-                .doOnSuccess(wikipediaResponse -> cacheObject(CacheConfiguration.WIKIPEDIA_CACHE, wikiArtistId.toLowerCase(), wikipediaResponse));
+                .doOnSuccess(wikipediaResponse -> cacheObject(wikiArtistId.toLowerCase(), wikipediaResponse));
     }
 
     private Mono<WikipediaData> deserializeResponse(ClientResponse clientResponse){
@@ -67,5 +69,13 @@ public class WikipediaClient extends CachingRemoteClient{
                 .doOnError(throwable -> {
                    throw new ExternalApiError(responseStatus, throwable.getMessage());
                 });
+    }
+
+    /**
+     * @return returns a cache identifier for Wikipedia cache
+     */
+    @Override
+    String getCacheIdentifier() {
+        return CacheConfiguration.WIKIPEDIA_CACHE;
     }
 }

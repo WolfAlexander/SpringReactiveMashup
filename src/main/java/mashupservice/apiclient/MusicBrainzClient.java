@@ -4,6 +4,7 @@ import mashupservice.apiclient.entity.ErrorMessage;
 import mashupservice.apiclient.entity.ExternalApiResponse;
 import mashupservice.configuration.CacheConfiguration;
 import mashupservice.apiclient.entity.MusicBrainzData;
+import mashupservice.exception.ValueInCacheNotFound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
@@ -40,8 +41,9 @@ public class MusicBrainzClient extends CachingRemoteClient {
         return mbid
                 .flatMap(id -> {
                     try {
-                        return Mono.just((MusicBrainzData) getObjectFromCache(CacheConfiguration.MUSIC_BRAINZ_CACHE, id.toLowerCase()));
-                    } catch (NullPointerException ex) {
+                        return Mono.just((MusicBrainzData) getObjectFromCache(id.toLowerCase()));
+                    } catch (ValueInCacheNotFound ex) {
+                        log.warn(ex.getMessage());
                         return getArtistDataFromRemote(id);
                     }
                 });
@@ -56,7 +58,7 @@ public class MusicBrainzClient extends CachingRemoteClient {
                 .exchange()
                 .timeout(Duration.ofSeconds(2))
                 .flatMap(this::deserializeResponse)
-                .doOnSuccess(musicBrainzData -> cacheObject(CacheConfiguration.MUSIC_BRAINZ_CACHE, mbid.toLowerCase(), musicBrainzData));
+                .doOnSuccess(musicBrainzData -> cacheObject(mbid.toLowerCase(), musicBrainzData));
     }
 
     private Mono<ExternalApiResponse> deserializeResponse(ClientResponse clientResponse) {
@@ -67,5 +69,13 @@ public class MusicBrainzClient extends CachingRemoteClient {
         } else
             return clientResponse.bodyToMono(ErrorMessage.class)
                     .flatMap(errorMessage -> Mono.error(new ExternalApiError(responseStatus, errorMessage.getMessage())));
+    }
+
+    /**
+     * @return returns a cache identifier for MusicBrainz cache
+     */
+    @Override
+    String getCacheIdentifier() {
+        return CacheConfiguration.MUSIC_BRAINZ_CACHE;
     }
 }

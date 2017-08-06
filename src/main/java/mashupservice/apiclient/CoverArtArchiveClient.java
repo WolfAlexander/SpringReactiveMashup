@@ -2,6 +2,7 @@ package mashupservice.apiclient;
 
 import mashupservice.configuration.CacheConfiguration;
 import mashupservice.apiclient.entity.AlbumCover;
+import mashupservice.exception.ValueInCacheNotFound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
@@ -41,8 +42,9 @@ public class CoverArtArchiveClient extends CachingRemoteClient{
         return albumId
                 .flatMap(artistId -> {
                     try{
-                        return Mono.just((AlbumCover) super.getObjectFromCache(CacheConfiguration.COVER_ART_CACHE, artistId.toLowerCase()));
-                    }catch (NullPointerException ex){
+                        return Mono.just((AlbumCover) super.getObjectFromCache(artistId.toLowerCase()));
+                    }catch (ValueInCacheNotFound ex){
+                        log.warn(ex.getMessage());
                         return getImageFromRemote(artistId);
                     }
                 });
@@ -76,10 +78,18 @@ public class CoverArtArchiveClient extends CachingRemoteClient{
                                             .accept(MediaType.APPLICATION_JSON)
                                             .retrieve()
                                             .bodyToMono(AlbumCover.class)
-                                            .doOnSuccess(albumCover -> cacheObject(CacheConfiguration.COVER_ART_CACHE, albumId.toLowerCase(), albumCover));
+                                            .doOnSuccess(albumCover -> cacheObject(albumId.toLowerCase(), albumCover));
                             });
                     else
                         return Mono.just(new AlbumCover());
                 });
+    }
+
+    /**
+     * @return returns a cache identifier for CoverArt archive cache
+     */
+    @Override
+    String getCacheIdentifier() {
+        return CacheConfiguration.COVER_ART_CACHE;
     }
 }

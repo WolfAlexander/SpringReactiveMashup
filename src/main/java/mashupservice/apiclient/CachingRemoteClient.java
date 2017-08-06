@@ -1,14 +1,16 @@
 package mashupservice.apiclient;
 
+import mashupservice.exception.ValueInCacheNotFound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * A caching client to a remote services
  */
-class CachingRemoteClient {
+abstract class CachingRemoteClient {
     private static final Logger log = LoggerFactory.getLogger(CachingRemoteClient.class);
     private final CacheManager cacheManager;
     final WebClient remote;
@@ -24,26 +26,34 @@ class CachingRemoteClient {
 
     /**
      * Putting a value into a specific cache
-     * @param cacheName - name to identify the cache in which value should be put
      * @param key - key to the value to later get the value
      * @param value - the value to be cached
      */
-    void cacheObject(String cacheName, Object key, Object value){
-        log.debug("Caching " + value + " with key '" + key + "' in cache with name '" + cacheName + "'");
+    void cacheObject(Object key, Object value){
+        log.debug("Caching " + value + " with key '" + key + "' in cache with name '" + getCacheIdentifier() + "'");
 
-        this.cacheManager.getCache(cacheName).put(key, value);
+        this.cacheManager.getCache(getCacheIdentifier()).put(key, value);
     }
 
     /**
      * Method for getting a cached value
-     * @param cacheName - name of the cache where value is cached
      * @param key - key to find the value
      * @return the cached value for a given key
-     * @throws NullPointerException if value for a give key does not exist
+     * @throws ValueInCacheNotFound if value for a give key does not exist
      */
-    Object getObjectFromCache(String cacheName, Object key){
-        log.debug("Getting value with key '" + key + "' from cache '" + cacheName + "'");
+    Object getObjectFromCache(Object key){
+        log.debug("Getting value with key '" + key + "' from cache '" + getCacheIdentifier() + "'");
 
-        return this.cacheManager.getCache(cacheName).get(key).get();
+        Cache.ValueWrapper wrappedValue = this.cacheManager.getCache(getCacheIdentifier()).get(key);
+
+        if(wrappedValue != null)
+            return wrappedValue.get();
+        else
+            throw new ValueInCacheNotFound("Value for a key '" + key + "' not found");
     }
+
+    /**
+     * @return the identification to identify the cache for the remote client
+     */
+    abstract String getCacheIdentifier();
 }
